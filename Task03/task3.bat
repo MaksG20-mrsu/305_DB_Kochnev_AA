@@ -1,5 +1,6 @@
 #!/bin/bash
-chcp 65001 
+chcp 65001
+
 sqlite3 movies_rating.db < db_init.sql
 
 echo "1. Составить список фильмов, имеющих хотя бы одну оценку. Список фильмов отсортировать по году выпуска и по названиям. В списке оставить первые 10 фильмов."
@@ -27,23 +28,23 @@ echo "--------------------------------------------------"
 sqlite3 movies_rating.db -box -echo "SELECT title, year, genres FROM movies WHERE year = (SELECT MAX(year) FROM movies) ORDER BY title;"
 echo " "
 
-echo "6. Найти все комедии, выпущенные после 2000 года, которые понравились мужчинам (оценка не ниже 4.5). Для каждого фильма в этом списке вывести название, год выпуска и количество таких оценок. Результат отсортировать по году выпуска и названию фильма."
+echo "6. Найти все драмы, выпущенные после 2005 года, которые понравились женщинам (оценка не ниже 4.5). Для каждого фильма в этом списке вывести название, год выпуска и количество таких оценок. Результат отсортировать по году выпуска и названию фильма."
 echo "--------------------------------------------------"
-sqlite3 movies_rating.db -box "SELECT m.title, m.year, COUNT(*) as high_ratings_count FROM movies m JOIN ratings r ON m.id = r.movie_id JOIN users u ON r.user_id = u.id WHERE m.genres LIKE '%%Comedy%%' AND m.year > 2000 AND r.rating >= 4.5 AND u.gender = 'male' GROUP BY m.id, m.title, m.year ORDER BY m.year, m.title;"
+sqlite3 movies_rating.db -box -echo "SELECT m.title, m.year, COUNT(*) as high_ratings_count FROM movies m JOIN ratings r ON m.id = r.movie_id JOIN users u ON r.user_id = u.id WHERE m.genres LIKE '%%Drama%%' AND m.year > 2005 AND r.rating >= 4.5 AND u.gender = 'female' GROUP BY m.id, m.title, m.year ORDER BY m.year, m.title;"
 echo " "
 
-echo "7. Провести анализ занятий (профессий) пользователей - вывести количество пользователей для каждого рода занятий."
+echo "7. Провести анализ востребованности ресурса - вывести количество пользователей, регистрировавшихся на сайте в каждом году."
 echo "--------------------------------------------------"
-sqlite3 movies_rating.db -box -echo "SELECT occupation, COUNT(*) AS user_count FROM users GROUP BY occupation ORDER BY user_count DESC;"
+sqlite3 movies_rating.db -box -echo "SELECT strftime('%%Y', register_date) AS registration_year, COUNT(*) AS user_count FROM users GROUP BY registration_year ORDER BY registration_year;"
 echo " "
 
-echo "Самая распространенная профессия:"
+echo "Год с наибольшим количеством регистраций:"
 echo "--------------------------------------------------"
-sqlite3 movies_rating.db -box -echo "SELECT occupation, COUNT(*) AS user_count FROM users GROUP BY occupation ORDER BY user_count DESC LIMIT 1;"
+sqlite3 movies_rating.db -box -echo "SELECT strftime('%%Y', register_date) AS registration_year, COUNT(*) AS user_count FROM users GROUP BY registration_year ORDER BY user_count DESC LIMIT 1;"
 echo " "
 
-echo "Самая редкая профессия:"
+echo "Год с наименьшим количеством регистраций:"
 echo "--------------------------------------------------"
-sqlite3 movies_rating.db -box -echo "SELECT occupation, COUNT(*) AS user_count FROM users GROUP BY occupation ORDER BY user_count ASC LIMIT 1;"
+sqlite3 movies_rating.db -box -echo "SELECT strftime('%%Y', register_date) AS registration_year, COUNT(*) AS user_count FROM users GROUP BY registration_year ORDER BY user_count ASC LIMIT 1;"
 
 pause
