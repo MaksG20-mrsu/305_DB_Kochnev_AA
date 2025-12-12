@@ -11,9 +11,12 @@ $groupQuery->execute(['currentYear' => $currentYear]);
 $availableGroups = $groupQuery->fetchAll(PDO::FETCH_COLUMN);
 
 $chosenGroup = $_GET['group'] ?? null;
-if ($chosenGroup !== null && !in_array($chosenGroup, $availableGroups)) {
-    http_response_code(400);
-    die('Выбран некорректный номер группы.');
+
+if ($chosenGroup !== null && $chosenGroup !== '') {
+    if (!in_array($chosenGroup, $availableGroups)) {
+        http_response_code(400);
+        die('Выбран некорректный номер группы.');
+    }
 }
 
 $queryString = "
@@ -31,7 +34,7 @@ $queryString = "
 
 $queryParameters = ['currentYear' => $currentYear];
 
-if ($chosenGroup !== null) {
+if ($chosenGroup !== null && $chosenGroup !== '') {
     $queryString .= " AND g.number = :groupNumber";
     $queryParameters['groupNumber'] = $chosenGroup;
 }
@@ -52,159 +55,95 @@ $studentList = $statement->fetchAll();
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         h1 {
-            color: #2c5282;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
+            color: #333;
         }
         
-        .filter {
-            background-color: #edf2f7;
-            padding: 15px;
-            border-radius: 6px;
+        form {
             margin-bottom: 20px;
-        }
-        .filter label {
-            font-weight: bold;
-            margin-right: 10px;
         }
         
         select, button {
-            padding: 8px 12px;
+            padding: 5px 10px;
             margin-right: 10px;
-            border: 1px solid #cbd5e0;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        button {
-            background-color: #4299e1;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        
-        button:hover {
-            background-color: #3182ce;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+        }
+        
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
         }
         
         th {
-            background-color: #2c5282;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: normal;
-        }
-        
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        tr:nth-child(even) {
-            background-color: #f7fafc;
-        }
-        
-        tr:hover {
-            background-color: #ebf8ff;
-        }
-        
-        .group-badge {
-            background-color: #bee3f8;
-            color: #2c5282;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #718096;
-            font-size: 16px;
+            background-color: #f0f0f0;
         }
         
         .student-count {
-            color: #2c5282;
-            font-weight: bold;
-            margin-left: 15px;
+            color: #666;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Список студентов</h1>
-        
-        <div class="filter">
-            <form method="GET">
-                <label for="group">Группа:</label>
-                <select name="group" id="group">
-                    <option value="">Все группы</option>
-                    <?php foreach ($availableGroups as $groupNum): ?>
-                        <option value="<?= htmlspecialchars($groupNum) ?>" <?= $chosenGroup === $groupNum ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($groupNum) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit">Показать</button>
-                
-                <?php if ($chosenGroup): ?>
-                    <span class="student-count">Студентов: <?= count($studentList) ?></span>
-                <?php endif; ?>
-            </form>
-        </div>
+    <h1>Список студентов</h1>
+    
+    <form method="GET">
+        <label for="group">Группа:</label>
+        <select name="group" id="group">
+            <option value="">Все группы</option>
+            <?php foreach ($availableGroups as $groupNum): ?>
+                <option value="<?= htmlspecialchars($groupNum) ?>" <?= $chosenGroup === $groupNum ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($groupNum) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit">Показать</button>
         
         <?php if (!empty($studentList)): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Группа</th>
-                        <th>Направление</th>
-                        <th>ФИО</th>
-                        <th>Пол</th>
-                        <th>Дата рождения</th>
-                        <th>Номер билета</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($studentList as $student): ?>
-                        <tr>
-                            <td><span class="group-badge"><?= htmlspecialchars($student['group_number']) ?></span></td>
-                            <td><?= htmlspecialchars($student['program']) ?></td>
-                            <td><?= htmlspecialchars($student['full_name']) ?></td>
-                            <td><?= htmlspecialchars($student['gender']) ?></td>
-                            <td><?= htmlspecialchars($student['birth_date']) ?></td>
-                            <td><?= htmlspecialchars($student['student_card_number']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <div class="no-data">
-                <p>Студентов не найдено</p>
-            </div>
+            <span class="student-count">
+                <?php if ($chosenGroup && $chosenGroup !== ''): ?>
+                    Студентов в группе: <?= count($studentList) ?>
+                <?php else: ?>
+                    Всего студентов: <?= count($studentList) ?>
+                <?php endif; ?>
+            </span>
         <?php endif; ?>
-    </div>
+    </form>
+    
+    <?php if (!empty($studentList)): ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>Группа</th>
+                    <th>Направление</th>
+                    <th>ФИО</th>
+                    <th>Пол</th>
+                    <th>Дата рождения</th>
+                    <th>Номер билета</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($studentList as $student): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($student['group_number']) ?></td>
+                        <td><?= htmlspecialchars($student['program']) ?></td>
+                        <td><?= htmlspecialchars($student['full_name']) ?></td>
+                        <td><?= htmlspecialchars($student['gender']) ?></td>
+                        <td><?= htmlspecialchars($student['birth_date']) ?></td>
+                        <td><?= htmlspecialchars($student['student_card_number']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p>Студентов не найдено</p>
+    <?php endif; ?>
 </body>
 </html>
