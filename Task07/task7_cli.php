@@ -165,5 +165,4 @@ function displayTable($tableData) {
 
     echo $bottomBorder . "\n";
 }
-
 displayTable($studentData);

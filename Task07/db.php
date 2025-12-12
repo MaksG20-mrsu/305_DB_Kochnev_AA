@@ -58,7 +58,6 @@ if (!$tableCheck) {
         ('Шарунов Максим Игоревич', 'М', '2005-05-06', '35', 2),
         ('Шушев Денис Сергеевич', 'М', '2005-08-27', '36', 1);
     ";
-    
     $statements = explode(';', $schema);
     foreach ($statements as $statement) {
         $statement = trim($statement);

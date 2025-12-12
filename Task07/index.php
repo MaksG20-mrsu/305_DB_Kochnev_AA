@@ -78,7 +78,6 @@ $studentList = $statement->fetchAll();
             border-radius: 6px;
             margin-bottom: 20px;
         }
-        
         .filter label {
             font-weight: bold;
             margin-right: 10px;
